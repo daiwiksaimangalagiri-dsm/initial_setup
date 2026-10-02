@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "playwright-chrome": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser",
+        "chrome"
+      ],
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,73 @@
+---
+name: secure-xml-parsing
+description: Generate secure XML parsing code. Enforces secure parsing of XML content. Invoke when writing any XML parsing related code.
+allowed-tools: Read Grep Glob
+metadata:
+  category: security
+---
+
+# Secure XML Parsing Code Generation Rules
+
+Apply **all** rules below when generating or reviewing any code related to xml content parsing.
+
+## 1. XXE / DTD / XInclude / Internal Entity Prevention (CRITICAL)
+
+- ALWAYS disable resolution of Document Type Definition (DTD).
+- ALWAYS disable resolution of XML External Entity.
+- ALWAYS disable expansion/replacement of XML Internal Entity.
+- ALWAYS disable XInclude support.
+- ALWAYS limit the size of the XML input to prevent memory exhaustion (reject inputs larger than 1 MB).
+
+```java
+// BAD: DTD and External Entities are resolved / Internal Entities are replaced / XInclude support is left to default / no size limit
+import org.w3c.dom.Document;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.File;
+
+DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+DocumentBuilder        builder = factory.newDocumentBuilder();
+Document               doc     = builder.parse(new File("data.xml"));
+
+// GOOD: DTD and External Entities are not resolved / Internal Entities are not replaced / XInclude disabled / input size limited
+import org.w3c.dom.Document;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.*;
+import java.nio.file.*;
+
+int    MAX_XML_SIZE_BYTES = 1 * 1024 * 1024; // 1 MB
+byte[] xmlBytes           = Files.readAllBytes(Path.of("data.xml"));
+if (xmlBytes.length > MAX_XML_SIZE_BYTES) {
+    throw new IOException("XML input exceeds maximum allowed size of 1 MB");
+}
+
+DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+// Disable DTD resolution entirely
+factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+// Disable XML External Entity (XXE) resolution
+factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+// Disable replacement of XML Internal Entities
+factory.setExpandEntityReferences(false);
+// Disable XInclude support
+factory.setXIncludeAware(false);
+DocumentBuilder builder = factory.newDocumentBuilder();
+Document        doc     = builder.parse(new ByteArrayInputStream(xmlBytes));
+```
+
+## 2. Output Checklist
+
+Before finalizing generated code, verify:
+
+- [ ] DTD resolution is NOT enabled.
+- [ ] External Entities (general and parameter) are NOT resolved.
+- [ ] Internal Entities are NOT replaced.
+- [ ] XInclude support is explicitly disabled.
+- [ ] XML input size is limited to 1 MB before parsing.
+
+## References
+
+- [XXE Prevention Cheat Sheet from OWASP](https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html).
+- [XML external entity (XXE) injection from PortSwigger](https://portswigger.net/web-security/xxe).
