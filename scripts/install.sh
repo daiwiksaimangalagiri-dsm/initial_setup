@@ -74,6 +74,9 @@ echo "$INSTALLED" | grep -q "❯ ponytail@ponytail" || { claude plugin marketpla
 
 step "User-scope MCP servers (load in every session)"
 claude mcp get ruflo >/dev/null 2>&1 || claude mcp add ruflo -s user -- ruflo mcp start
+# GitHub's official MCP server. The token comes from gh / the keychain at connect time, never stored in config.
+claude mcp get github >/dev/null 2>&1 || claude mcp add-json github -s user \
+  "{\"type\":\"http\",\"url\":\"https://api.githubcopilot.com/mcp/\",\"headersHelper\":\"$REPO/scripts/github-mcp-headers.sh\"}"
 
 step "Headroom (token-saving proxy, started by the headroom plugin at every session start)"
 if ! headroom --version 2>/dev/null | grep -q "$HEADROOM_VERSION"; then

@@ -4,6 +4,7 @@ One line per change, newest first. Use **Added**, **Updated** or **Removed**, an
 
 ## 2026-10-02
 
+- **Added** the GitHub MCP server (user scope, all sessions). It signs in through `scripts/github-mcp-headers.sh`, so no token is stored in the config.
 - **Added** the GitHub CLI `gh` 2.102.0, and published this repo at github.com/daiwiksaimangalagiri-dsm/initial_setup.
 - **Added** 14 secure-coding skills (`secure-*`) from righettod/code-assistant-skills-security-utils (GPL-3.0). The global `CLAUDE.md` and the project template tell Claude when to use each one.
 - **Added** `setup.sh` / `initial-setup`: one command that installs everything, sets up the current repo, and verifies it. Replaces `new-project.sh` with `project-setup.sh`, which also works on existing repos.

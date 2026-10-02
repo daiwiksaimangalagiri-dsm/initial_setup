@@ -41,6 +41,7 @@ initial-setup
 | Claude Code plugins | Add-ons for Claude Code | Skills, memory, token savings, design tools |
 | headroom | Local proxy | Shrinks what Claude sends, so sessions use fewer tokens |
 | ruflo | Agent orchestration | Runs swarms of agents for big tasks |
+| GitHub MCP | GitHub tools for Claude | Issues, PRs, repos and CI from inside Claude |
 | Custom skills | Our own instructions for Claude | Same writing, workflow and secure-coding rules for everyone |
 
 ---
@@ -143,6 +144,13 @@ initial-setup
 - **Note:** ruflo has one maintainer and releases often. We pin the version on purpose.
 
 ---
+
+### GitHub MCP server
+- **What:** GitHub's official MCP server. Claude can read and manage issues, PRs, repos and CI runs directly.
+- **Why:** Claude works with GitHub without you copying and pasting links or output.
+- **How it signs in:** `scripts/github-mcp-headers.sh` reads your token from `gh` or the macOS keychain each time Claude connects. The token is never written to Claude's config.
+- **Install:** `claude mcp add-json github -s user '{"type":"http","url":"https://api.githubcopilot.com/mcp/","headersHelper":"<repo>/scripts/github-mcp-headers.sh"}'`
+- **Check:** `claude mcp list` shows `github: ✔ Connected`.
 
 ## Session defaults (apply to every session)
 

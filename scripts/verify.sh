@@ -58,7 +58,10 @@ PLUGINS=$(claude plugin list 2>/dev/null)
 for p in superpowers playwright context7 frontend-design figma claude-code-setup claude-mem headroom ponytail; do
   if echo "$PLUGINS" | grep -A3 "❯ $p@" | grep -q "enabled"; then ok "plugin: $p" "enabled"; else bad "plugin: $p" "missing or disabled"; fi
 done
-if claude mcp list 2>/dev/null | grep -q "^ruflo:.*Connected"; then ok "MCP (user): ruflo" "connected"; else bad "MCP (user): ruflo" "not connected"; fi
+MCPS=$(claude mcp list 2>/dev/null)
+for m in ruflo github; do
+  if echo "$MCPS" | grep -q "^$m:.*Connected"; then ok "MCP (user): $m" "connected"; else bad "MCP (user): $m" "not connected"; fi
+done
 
 echo "Skills (from skills/)"
 for dir in "$REPO"/skills/*/; do
