@@ -54,10 +54,22 @@ check "gh" gh --version
 if gh auth status >/dev/null 2>&1; then ok "gh auth" "signed in"; else warn "gh auth" "run: gh auth login --git-protocol https --web"; fi
 git config --global --get-all credential.https://github.com.helper 2>/dev/null | grep -q "gh auth git-credential" && ok "git → gh credentials" "git push uses gh sign-in" || warn "git → gh credentials" "run: gh auth setup-git (after gh auth login)"
 
+echo "Diagram tools"
+check "mermaid-cli (mmdc)" mmdc --version
+check "likec4" likec4 --version
+check "dependency-cruiser" depcruise --version
+check "graphviz (wasm)" wasm-graphviz-cli --version
+check "tach" tach --version
+TSV=$(node -p "require('$(npm root -g)/typescript/package.json').version" 2>/dev/null)
+case $TSV in 5.*) ok "typescript (global)" "$TSV, works with dependency-cruiser";; "") bad "typescript (global)" "missing";; *) bad "typescript (global)" "$TSV: dependency-cruiser needs < 7";; esac
+DRAWIO=/Applications/draw.io.app/Contents/MacOS/draw.io
+[ -x "$DRAWIO" ] && ok "draw.io desktop" "$("$DRAWIO" --version 2>/dev/null | tail -1)" || bad "draw.io desktop" "not in /Applications"
+for c in diagram-render diagram-deps; do command -v $c >/dev/null && ok "command: $c" "on PATH" || bad "command: $c" "missing — run install.sh"; done
+
 echo "Claude Code"
 check "claude" claude --version
 PLUGINS=$(claude plugin list 2>/dev/null)
-for p in superpowers playwright context7 frontend-design figma claude-code-setup claude-mem headroom ponytail; do
+for p in superpowers playwright context7 frontend-design figma claude-code-setup claude-mem headroom ponytail drawio; do
   if echo "$PLUGINS" | grep -A3 "❯ $p@" | grep -q "enabled"; then ok "plugin: $p" "enabled"; else bad "plugin: $p" "missing or disabled"; fi
 done
 MCPS=$(claude mcp list 2>/dev/null)
@@ -136,6 +148,7 @@ if [ -n "$PROJECT" ]; then
     [ -f "$P/.claude/commands/opsx/propose.md" ] && ok "openspec commands" "/opsx:* installed" || bad "openspec commands" "missing — run initial-setup"
     grep -q "## Specs (OpenSpec)" "$P/CLAUDE.md" 2>/dev/null && ok "CLAUDE.md: OpenSpec rule" "present" || bad "CLAUDE.md: OpenSpec rule" "missing — run initial-setup"
     grep -q "## Commits (Conventional Commits)" "$P/CLAUDE.md" 2>/dev/null && ok "CLAUDE.md: commits rule" "present" || bad "CLAUDE.md: commits rule" "missing — run initial-setup"
+    grep -q "## Diagrams" "$P/CLAUDE.md" 2>/dev/null && ok "CLAUDE.md: diagrams rule" "present" || bad "CLAUDE.md: diagrams rule" "missing — run initial-setup"
     HK=$(git -C "$P" rev-parse --git-path hooks 2>/dev/null); case $HK in /*) ;; *) HK=$P/$HK;; esac
     if [ ! -f "$HK/commit-msg" ]; then bad "commit-msg hook" "missing — run initial-setup"
     elif grep -q "initial_setup commit-msg hook" "$HK/commit-msg"; then
@@ -165,6 +178,15 @@ await p.goto('https://example.com'); await p.click('a'); await p.waitForLoadStat
 console.log(b.version() + ' → ' + p.url()); await b.close();
 EOF
   if out=$(node "$TMP/t.mjs" 2>&1); then ok "Library → Chromium" "$out"; else bad "Library → Chromium" "$out"; fi
+  # Diagrams: render Mermaid, render DOT, validate a LikeC4 model, graph a tiny TS project
+  printf 'sequenceDiagram\n  A->>B: hello\n' > "$TMP/c.mmd"
+  if diagram-render "$TMP/c.mmd" >/dev/null 2>&1 && [ -s "$TMP/c.png" ]; then ok "Mermaid → PNG" "rendered with Chrome"; else bad "Mermaid → PNG" "diagram-render failed"; fi
+  printf 'digraph{a->b}' > "$TMP/c.dot"
+  if wasm-graphviz-cli -K dot -T svg "$TMP/c.dot" 2>/dev/null | grep -q "<svg"; then ok "DOT → SVG" "Graphviz WASM"; else bad "DOT → SVG" "failed"; fi
+  mkdir -p "$TMP/c4" && printf 'specification {\n  element system\n}\nmodel {\n  a = system "A"\n  b = system "B"\n  a -> b\n}\nviews {\n  view index {\n    include *\n  }\n}\n' > "$TMP/c4/m.c4"
+  if (cd "$TMP/c4" && likec4 validate >/dev/null 2>&1); then ok "LikeC4 validate" "model ok"; else bad "LikeC4 validate" "failed"; fi
+  mkdir -p "$TMP/ts/src/a" "$TMP/ts/src/b" && echo 'export const x = 1;' > "$TMP/ts/src/b/x.ts" && echo 'import { x } from "../b/x"; export const y = x;' > "$TMP/ts/src/a/y.ts" && echo '{}' > "$TMP/ts/package.json"
+  if (cd "$TMP/ts" && diagram-deps >/dev/null 2>&1 && grep -q -- "-->" docs/diagrams/dependencies.mmd); then ok "diagram-deps (TS)" "dependency found"; else bad "diagram-deps (TS)" "empty graph"; fi
   rm -rf "$TMP"
 fi
 

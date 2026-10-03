@@ -25,6 +25,8 @@ The examples are in Java. Translate them to the project's language. The limits (
 
 **Commits:** every git commit in every repo uses Conventional Commits 1.0.0: `<type>(<optional scope>): <description>`, with type one of `feat fix docs style refactor perf test build ci chore revert`. Subject is imperative, lowercase, no trailing period, 72 characters or fewer. Add a body (blank line after the subject, what and why) for anything but a trivial change. Mark breaking changes with `!` or a `BREAKING CHANGE:` footer. One logical change per commit. A `commit-msg` hook enforces this; never bypass it with `--no-verify`.
 
+**Diagrams:** Use the `diagrams` skill for any blueprint, flow, sequence, process or dependency diagram. Mermaid by default, generate dependency graphs with `diagram-deps`, and render with `diagram-render` and look at the image before you show it.
+
 **Model and effort:** pick the cheapest setting that does the job well.
 
 | Task | Model | Effort |

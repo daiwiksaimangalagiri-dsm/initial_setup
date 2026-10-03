@@ -6,6 +6,7 @@ A skill is a set of instructions that Claude loads only when a task needs it. Th
 
 | Skill | What it does | When it runs | Source |
 |-------|--------------|--------------|--------|
+| `diagrams` | Picks the right diagram tool, writes clean Mermaid, renders it and checks the image, generates dependency graphs | Any blueprint, flow, sequence, process or dependency diagram (team block in `~/.claude/CLAUDE.md`) | Team |
 | `stop-slop` | Removes AI writing habits: filler, hype, em dashes, vague claims | Any prose people read. It's on by default through `~/.claude/CLAUDE.md` | Hardik Pandya, MIT |
 | `task-observer` | Logs what went wrong or right in each session, so we can improve our skills | Start of every task session (line in `~/.claude/CLAUDE.md`) | Eoghan Henn / rebelytics, CC BY 4.0 |
 | `pr-description` | Writes PR descriptions in a **What / Why** format | When you create a PR | Team |
@@ -36,6 +37,7 @@ Rules for writing code that resists common attacks. Claude loads the matching on
 | Plugin | Main skills | Use for |
 |--------|-------------|---------|
 | ponytail | ponytail (`/ponytail lite\|full\|ultra`) | Simplest code that works. On in every session and subagent |
+| drawio | drawio | Polished draw.io diagrams, exported as editable `.drawio.svg` |
 | superpowers | brainstorming, writing-plans, test-driven-development, systematic-debugging, verification-before-completion | Building step by step and checking your work |
 | claude-mem | mem-search, make-plan, do, smart-explore | Finding past work, planning and running big tasks |
 | frontend-design | frontend-design | UI that doesn't look like a template |

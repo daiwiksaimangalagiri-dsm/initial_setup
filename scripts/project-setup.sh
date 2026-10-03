@@ -46,8 +46,8 @@ python3 - "$DEST/CLAUDE.md" "$REPO/templates/CLAUDE.md" <<'PY'
 import re, sys
 dst, tpl = sys.argv[1], open(sys.argv[2]).read()
 s = open(dst).read()
-# Specs: stops superpowers writing a second spec folder. Commits: Conventional Commits rule.
-for title in ("Specs (OpenSpec)", "Commits (Conventional Commits)"):
+# Specs: stops superpowers writing a second spec folder. Commits: Conventional Commits rule. Diagrams: team diagram rules.
+for title in ("Specs (OpenSpec)", "Commits (Conventional Commits)", "Diagrams"):
     if f"## {title}" in s: continue
     sec = re.search(rf"^## {re.escape(title)}\n.*?(?=^## )", tpl, re.S | re.M).group(0)
     s = s.replace("## The loop", sec + "## The loop", 1) if "## The loop" in s else s.rstrip() + "\n\n" + sec

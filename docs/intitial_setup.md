@@ -2,7 +2,7 @@
 
 Every tool on our machines, explained in plain words. Update this page each time you add or remove something.
 
-- **Last verified:** 2026-10-02 on macOS 26.6.2 (arm64): 76 checks passed, 0 failed, 0 warnings
+- **Last verified:** 2026-10-02 on macOS 26.6.2 (arm64): 92 checks passed, 0 failed, 0 warnings
 - **One command:** run `initial-setup` inside any repo. It installs what's missing, sets up the repo, and checks everything.
 
 ---
@@ -45,6 +45,7 @@ initial-setup
 | OpenSpec | Spec-driven development | Write specs before code, change them in phases, keep the history |
 | Commit rules | Conventional Commits, enforced by a git hook | Every commit has a clear type and reason, so history and changelogs stay readable |
 | GitHub MCP | GitHub tools for Claude | Issues, PRs, repos and CI from inside Claude |
+| Diagram tools | Mermaid, LikeC4, dependency-cruiser, tach, draw.io | Blueprints, flows, sequence diagrams and dependency graphs as text in the repo |
 | Custom skills | Our own instructions for Claude | Same writing, workflow and secure-coding rules for everyone |
 
 ---
@@ -122,6 +123,7 @@ initial-setup
 | frontend-design | Guidance for good-looking UI | No |
 | figma | Figma ↔ code (run `/mcp` once to sign in) | No |
 | claude-code-setup | Suggests hooks, skills and MCP servers for a repo | No |
+| drawio 1.1.0 | Draws polished, editable draw.io diagrams | No |
 
 **Install one:** `claude plugin install <name>@<marketplace>`. Plugins from outside the official marketplace need `claude plugin marketplace add <owner/repo>` first:
 
@@ -130,6 +132,7 @@ initial-setup
 | claude-mem | `thedotmack/claude-mem` |
 | headroom | `headroomlabs-ai/headroom` |
 | ponytail | `DietrichGebert/ponytail` |
+| drawio | `jgraph/drawio-mcp` |
 
 ### headroom 0.39.1 (proxy)
 - **What:** A small local server that compresses what Claude Code sends to the API.
@@ -163,6 +166,56 @@ initial-setup
 - **How it signs in:** `scripts/github-mcp-headers.sh` reads your token from `gh` or the macOS keychain each time Claude connects. The token is never written to Claude's config.
 - **Install:** `claude mcp add-json github -s user '{"type":"http","url":"https://api.githubcopilot.com/mcp/","headersHelper":"<repo>/scripts/github-mcp-headers.sh"}'`
 - **Check:** `claude mcp list` shows `github: ✔ Connected`.
+
+## Diagrams
+
+Diagrams are text files in the repo, so they show up in PRs and on GitHub. The `diagrams` skill tells Claude which tool to use and makes it render the diagram and look at it before showing it. We picked this setup after comparing 20+ tools (Mermaid won because GitHub, GitLab, Notion and VS Code all show it).
+
+| Job | Tool |
+|-----|------|
+| Approach, flow, process, sequence diagrams | Mermaid |
+| Architecture with several views (context, containers, components) | LikeC4 |
+| Dependencies between modules or packages | `diagram-deps` (generated from code) |
+| Polished picture people will drag around | draw.io plugin |
+
+### Mermaid CLI 12.0.0 (`@mermaid-js/mermaid-cli`)
+- **What:** turns Mermaid text into SVG and PNG.
+- **Why:** Claude can't see a diagram in the terminal. Rendering lets it look at the picture and fix problems.
+- **Install:** `PUPPETEER_SKIP_DOWNLOAD=1 npm install -g @mermaid-js/mermaid-cli@12.0.0`. It uses your Chrome, so it skips the 150 MB bundled browser.
+- **Use:** `diagram-render docs/diagrams/flow.mmd` writes `flow.svg` and `flow.png`.
+
+### LikeC4 1.59.4
+- **What:** architecture diagrams from one model. Change a box once and every view updates.
+- **Why:** blueprints with several zoom levels don't drift apart.
+- **Install:** `npm install -g likec4@1.59.4`
+- **Use:** `likec4 validate`, then `likec4 gen mermaid -o docs/diagrams/c4` to get Mermaid for GitHub.
+
+### dependency-cruiser 18.5.0 + TypeScript 5.9.3
+- **What:** reads JS/TS imports and draws the module graph. It can also fail CI when a rule is broken.
+- **Why:** hand-drawn dependency maps go stale; generated ones don't.
+- **Install:** `npm install -g dependency-cruiser@18.5.0 typescript@5.9.3`
+- **Watch out:** it doesn't support TypeScript 7 yet. With TS 7 the graph comes out empty without an error, so we pin TS 5.
+
+### tach 0.35.2
+- **What:** the same idea for Python: draws module dependencies and enforces boundaries (`tach check`).
+- **Install:** `uv tool install tach==0.35.2`. Without a `tach.toml`, `diagram-deps` falls back to pyreverse (run through `uvx`, nothing to install).
+
+### Graphviz WASM 1.11.3 (`@hpcc-js/wasm-graphviz-cli`)
+- **What:** renders DOT graphs (from Go, Java and other tools) to SVG.
+- **Why:** real Graphviz needs Homebrew. This WebAssembly build doesn't.
+- **Install:** `npm install -g @hpcc-js/wasm-graphviz-cli@1.11.3`. Use: `wasm-graphviz-cli -K dot -T svg graph.dot`
+
+### draw.io desktop 31.7.0 + drawio plugin
+- **What:** the plugin lets Claude write `.drawio` diagrams. The desktop app exports them and tidies the layout.
+- **Why:** for diagrams non-engineers will edit by hand. Save as `.drawio.svg`: GitHub shows it as an image, and it still opens for editing.
+- **Install:** the arm64 DMG from github.com/jgraph/drawio-desktop releases (checksum checked), copied to `/Applications`. Plugin: `claude plugin marketplace add jgraph/drawio-mcp && claude plugin install drawio@drawio`.
+
+### Our commands
+| Command | What it does |
+|---------|--------------|
+| `diagram-render file.mmd` | Renders Mermaid to SVG + PNG with your Chrome |
+| `diagram-deps` | Writes `docs/diagrams/dependencies.mmd` from the code (JS/TS, or Python) |
+| `diagram-deps --check` | Fails if the committed graph is out of date. Put it in CI |
 
 ## Status line (`statusline/`)
 
@@ -205,6 +258,7 @@ initial-setup
 | stop-slop | `~/.claude/CLAUDE.md` (team block) | Plain, direct writing in docs and messages |
 | Commits | `~/.claude/CLAUDE.md` (team block) | Conventional Commits format with a body, in every repo |
 | Secure coding | `~/.claude/CLAUDE.md` (team block) | Loads the matching `secure-*` skill for archives, uploads, JWT, XML and similar code |
+| Diagrams | `~/.claude/CLAUDE.md` (team block) | Uses the `diagrams` skill: Mermaid by default, render and check before showing |
 | task-observer | `~/.claude/CLAUDE.md` | Logs lessons from each session to improve our skills |
 | Session-start hooks | the plugins above | superpowers, claude-mem, headroom, ponytail |
 

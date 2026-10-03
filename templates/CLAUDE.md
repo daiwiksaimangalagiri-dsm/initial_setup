@@ -48,6 +48,16 @@ feat(auth): add password reset by email
 Refs: #123
 ```
 
+## Diagrams
+
+Diagrams are text in the repo, drawn with the `diagrams` skill. The skill covers which tool fits each job and the render-and-check loop.
+
+- Mermaid by default (renders on GitHub). Sequence diagrams are always Mermaid.
+- Multi-view architecture: LikeC4 (`.c4`). Polished, hand-arranged pictures: draw.io plugin, saved as `.drawio.svg`.
+- Dependency graphs are generated, never drawn: `diagram-deps`. CI runs `diagram-deps --check`.
+- Render with `diagram-render` and look at the PNG before showing or committing a diagram.
+- Files go in `docs/diagrams/` (source `.mmd` next to the rendered `.svg`), or in the OpenSpec change folder for a change.
+
 ## The loop
 
 Every change runs through the project's check, test and build commands. A task is not done until they pass.

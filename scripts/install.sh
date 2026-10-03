@@ -14,6 +14,14 @@ HEADROOM_VERSION=0.39.1
 BUN_VERSION=1.4.2
 GH_VERSION=2.102.0
 OPENSPEC_VERSION=1.14.0
+MERMAID_CLI_VERSION=12.0.0
+LIKEC4_VERSION=1.59.4
+DEPCRUISE_VERSION=18.5.0
+DEPCRUISE_TS_VERSION=5.9.3   # dependency-cruiser 18.5 needs TypeScript < 7; with TS 7 it silently finds nothing
+GRAPHVIZ_WASM_VERSION=1.11.3
+TACH_VERSION=0.35.2
+DRAWIO_VERSION=31.7.0
+DRAWIO_SHA256=bf52537fdc6454b6ff994e428d37032050e0baadbce78104b5a46405444ade81
 CLAUDE_PLUGINS="superpowers@claude-plugins-official playwright@claude-plugins-official context7@claude-plugins-official frontend-design@claude-plugins-official figma@claude-plugins-official claude-code-setup@claude-plugins-official"
 
 REPO=$(cd "$(dirname "$0")/.." && pwd)
@@ -65,6 +73,25 @@ step "OpenSpec (spec-driven development: specs, changes, archive)"
 npm_pin @fission-ai/openspec "$OPENSPEC_VERSION"
 openspec config set telemetry.enabled false >/dev/null
 
+step "Diagram tools (Mermaid CLI, LikeC4, dependency-cruiser, Graphviz WASM, tach)"
+# mermaid-cli renders with your installed Chrome (diagram-render sets PUPPETEER_EXECUTABLE_PATH), so skip its 150 MB Chromium
+PUPPETEER_SKIP_DOWNLOAD=1 npm_pin @mermaid-js/mermaid-cli "$MERMAID_CLI_VERSION"
+npm_pin likec4 "$LIKEC4_VERSION"
+npm_pin dependency-cruiser "$DEPCRUISE_VERSION"
+npm_pin typescript "$DEPCRUISE_TS_VERSION"
+npm_pin @hpcc-js/wasm-graphviz-cli "$GRAPHVIZ_WASM_VERSION"
+tach --version 2>/dev/null | grep -q "$TACH_VERSION" || uv tool install --force "tach==$TACH_VERSION"
+
+step "draw.io desktop (export + auto-layout for the draw.io plugin)"
+if [ ! -d "/Applications/draw.io.app" ]; then
+  T=$(mktemp -d); DMG="$T/drawio.dmg"
+  curl -fsSL -o "$DMG" "https://github.com/jgraph/drawio-desktop/releases/download/v$DRAWIO_VERSION/draw.io-arm64-$DRAWIO_VERSION.dmg"
+  echo "$DRAWIO_SHA256  $DMG" | shasum -a 256 -c
+  MNT=$(hdiutil attach -nobrowse -readonly "$DMG" | tail -1 | awk -F'\t' '{print $NF}')
+  cp -R "$MNT/draw.io.app" /Applications/ && hdiutil detach -quiet "$MNT"
+  codesign --verify --deep /Applications/draw.io.app
+fi
+
 step "Playwright Chromium"
 playwright install chromium
 
@@ -80,6 +107,7 @@ done
 echo "$INSTALLED" | grep -q "❯ claude-mem@thedotmack" || { claude plugin marketplace add thedotmack/claude-mem; claude plugin install claude-mem@thedotmack; }
 echo "$INSTALLED" | grep -q "❯ headroom@headroom-marketplace" || { claude plugin marketplace add headroomlabs-ai/headroom; claude plugin install headroom@headroom-marketplace; }
 echo "$INSTALLED" | grep -q "❯ ponytail@ponytail" || { claude plugin marketplace add DietrichGebert/ponytail; claude plugin install ponytail@ponytail; }
+echo "$INSTALLED" | grep -q "❯ drawio@drawio" || { claude plugin marketplace add jgraph/drawio-mcp; claude plugin install drawio@drawio; }
 
 step "User-scope MCP servers (load in every session)"
 claude mcp get ruflo >/dev/null 2>&1 || claude mcp add ruflo -s user -- ruflo mcp start
@@ -154,4 +182,6 @@ EOF
 step "initial-setup command"
 mkdir -p "$HOME/.local/bin"
 ln -sf "$REPO/setup.sh" "$HOME/.local/bin/initial-setup"
+ln -sf "$REPO/scripts/diagrams-render.sh" "$HOME/.local/bin/diagram-render"
+ln -sf "$REPO/scripts/diagrams-deps.sh" "$HOME/.local/bin/diagram-deps"
 echo "Run 'initial-setup' inside any repo to set it up."
