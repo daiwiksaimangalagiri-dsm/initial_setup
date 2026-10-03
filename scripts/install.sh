@@ -131,6 +131,21 @@ d.setdefault("effortLevel", "xhigh")
 json.dump(d, open(p, "w"), indent=2)
 EOF
 
+step "Status line (model, tokens, prompt cache, savings, repo, subagent models)"
+# Sets ours unless you already have your own status line
+python3 - "$HOME/.claude/settings.json" "$REPO/statusline" <<'EOF'
+import json, os, sys
+p, d = sys.argv[1], sys.argv[2]
+s = json.load(open(p)) if os.path.exists(p) else {}
+for key, script, extra in (("statusLine", "statusline.py", {"refreshInterval": 15}), ("subagentStatusLine", "subagent-statusline.py", {})):
+    cur = s.get(key, {}).get("command", "")
+    if not cur or "initial_setup" in cur or "statusline-debug" in cur:
+        s[key] = {"type": "command", "command": f"python3 {d}/{script}", **extra}
+    else:
+        print(f"kept your own {key}: {cur}")
+json.dump(s, open(p, "w"), indent=2)
+EOF
+
 step "initial-setup command"
 mkdir -p "$HOME/.local/bin"
 ln -sf "$REPO/setup.sh" "$HOME/.local/bin/initial-setup"

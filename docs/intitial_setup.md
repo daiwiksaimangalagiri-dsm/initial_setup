@@ -41,6 +41,7 @@ initial-setup
 | Claude Code plugins | Add-ons for Claude Code | Skills, memory, token savings, design tools |
 | headroom | Local proxy | Shrinks what Claude sends, so sessions use fewer tokens |
 | ruflo | Agent orchestration | Runs swarms of agents for big tasks |
+| Status line | Live bar under Claude's prompt | Shows model, tokens, cost, prompt cache, money saved, repo and branch |
 | OpenSpec | Spec-driven development | Write specs before code, change them in phases, keep the history |
 | GitHub MCP | GitHub tools for Claude | Issues, PRs, repos and CI from inside Claude |
 | Custom skills | Our own instructions for Claude | Same writing, workflow and secure-coding rules for everyone |
@@ -160,6 +161,23 @@ initial-setup
 - **How it signs in:** `scripts/github-mcp-headers.sh` reads your token from `gh` or the macOS keychain each time Claude connects. The token is never written to Claude's config.
 - **Install:** `claude mcp add-json github -s user '{"type":"http","url":"https://api.githubcopilot.com/mcp/","headersHelper":"<repo>/scripts/github-mcp-headers.sh"}'`
 - **Check:** `claude mcp list` shows `github: ✔ Connected`.
+
+## Status line (`statusline/`)
+
+- **What:** Three lines at the bottom of Claude Code, plus a row for each subagent.
+
+  ```
+  🧠 Opus 5.5 · xhigh │ 📂 IU_Workspace ⎇ main ●8 │ 💬 Spec-driven documentation │ 😎 vibin
+  ▰▰▱▱▱▱▱▱▱▱ 19% of 1M │ 🪙 5.2M in · 39.6k out │ 💸 $5.25 │ ⏱️ 23m 49s (api 8m 40s) │ +465 −0
+  🧊 cache 93% hit 🔥 warm 59m left · 3 misses │ 💰 saved $16.97 cache + $0.65 headroom │ 🧠×45
+  ```
+  Subagent row: `⏳ Search docs │ 🐇 haiku 4.5 · low │ 50k tok (25%) │ ⏱️ 1:15`
+- **Why:** Prompt caching runs all the time, but Claude Code doesn't show it. This shows the hit rate, how long the cache stays warm, why it missed, and the money it saved. It also shows which model each subagent runs on.
+- **How "saved" is worked out:** cache reads cost 5–10% of normal input, so each cached token saves the difference. The extra cost of writing the cache is subtracted. Prices for Opus 5.5, Sonnet 5.5 and Haiku 4.5 are in `statusline.py`. "headroom" is the proxy's own total since it started.
+- **The vibe:** the last slot on line 1 changes with the session: ✨ fresh session, 😎 vibin, 🫠 context kinda full, 💀 /compact era, 🌙 goblin hours (1–5am), 🧑‍🍳 cooking fr (500+ lines), 💸 big spender ($20+), 🏎️ speedrun (fast mode).
+- **Install:** `install.sh` sets `statusLine` and `subagentStatusLine` in `~/.claude/settings.json`. If you already have your own status line, it keeps yours.
+- **Check:** `python3 statusline/statusline.py --test`
+- **Turn off:** `/statusline delete` in Claude Code.
 
 ## Session defaults (apply to every session)
 

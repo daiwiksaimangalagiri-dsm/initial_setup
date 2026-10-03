@@ -83,6 +83,10 @@ if curl -sf -m 3 http://127.0.0.1:8787/readyz >/dev/null; then ok "headroom prox
 grep -q 'ANTHROPIC_BASE_URL="http://127.0.0.1:8787"' "$HOME/.zshrc" 2>/dev/null && ok "headroom shell env" "ANTHROPIC_BASE_URL in ~/.zshrc" || bad "headroom shell env" "missing"
 PORT=$(python3 -c "import json;print(json.load(open('$HOME/.claude-mem/settings.json')).get('CLAUDE_MEM_WORKER_PORT','37777'))" 2>/dev/null || echo 37777)
 if curl -sf -m 3 "http://127.0.0.1:$PORT/health" >/dev/null; then ok "claude-mem worker" "healthy on :$PORT"; else warn "claude-mem worker" "not running (starts with the next session)"; fi
+python3 "$REPO/statusline/statusline.py" --test >/dev/null 2>&1 && ok "status line" "self-check passed" || bad "status line" "self-check failed: python3 statusline/statusline.py --test"
+python3 "$REPO/statusline/subagent-statusline.py" --test >/dev/null 2>&1 && ok "subagent status line" "self-check passed" || bad "subagent status line" "self-check failed"
+SL=$(python3 -c "import json;print(json.load(open('$HOME/.claude/settings.json')).get('statusLine',{}).get('command',''))" 2>/dev/null)
+case "$SL" in *initial_setup/statusline*) ok "statusLine setting" "ours";; "") bad "statusLine setting" "not set — run install.sh";; *) warn "statusLine setting" "your own: $SL";; esac
 
 echo "Session-start hooks (run each one like Claude Code does)"
 HOOKS=$(python3 - <<'PY'
