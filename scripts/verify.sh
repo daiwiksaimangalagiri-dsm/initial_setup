@@ -52,6 +52,7 @@ check "openspec" openspec --version
 check "headroom" headroom --version
 check "gh" gh --version
 if gh auth status >/dev/null 2>&1; then ok "gh auth" "signed in"; else warn "gh auth" "run: gh auth login --git-protocol https --web"; fi
+git config --global --get-all credential.https://github.com.helper 2>/dev/null | grep -q "gh auth git-credential" && ok "git → gh credentials" "git push uses gh sign-in" || warn "git → gh credentials" "run: gh auth setup-git (after gh auth login)"
 
 echo "Claude Code"
 check "claude" claude --version
@@ -83,6 +84,7 @@ if curl -sf -m 3 http://127.0.0.1:8787/readyz >/dev/null; then ok "headroom prox
 grep -q 'ANTHROPIC_BASE_URL="http://127.0.0.1:8787"' "$HOME/.zshrc" 2>/dev/null && ok "headroom shell env" "ANTHROPIC_BASE_URL in ~/.zshrc" || bad "headroom shell env" "missing"
 PORT=$(python3 -c "import json;print(json.load(open('$HOME/.claude-mem/settings.json')).get('CLAUDE_MEM_WORKER_PORT','37777'))" 2>/dev/null || echo 37777)
 if curl -sf -m 3 "http://127.0.0.1:$PORT/health" >/dev/null; then ok "claude-mem worker" "healthy on :$PORT"; else warn "claude-mem worker" "not running (starts with the next session)"; fi
+
 python3 "$REPO/statusline/statusline.py" --test >/dev/null 2>&1 && ok "status line" "self-check passed" || bad "status line" "self-check failed: python3 statusline/statusline.py --test"
 python3 "$REPO/statusline/subagent-statusline.py" --test >/dev/null 2>&1 && ok "subagent status line" "self-check passed" || bad "subagent status line" "self-check failed"
 python3 "$REPO/hooks/commit-msg" --test >/dev/null 2>&1 && ok "commit-msg hook" "self-check passed" || bad "commit-msg hook" "self-check failed: python3 hooks/commit-msg --test"

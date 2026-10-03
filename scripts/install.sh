@@ -46,6 +46,10 @@ if ! have gh; then
   (cd "$T" && grep "$Z" sums | shasum -a 256 -c) && unzip -qo "$T/$Z" -d "$T" && cp "$T/gh_${GH_VERSION}_macOS_arm64/bin/gh" "$HOME/.local/bin/gh"
 fi
 gh auth status >/dev/null 2>&1 || echo "Sign in once with: gh auth login --git-protocol https --web"
+# Once signed in, let git push and pull use the gh sign-in
+if gh auth status >/dev/null 2>&1 && ! git config --global --get-all credential.https://github.com.helper | grep -q "gh auth git-credential"; then
+  gh auth setup-git && echo "  git credentials: now use gh"
+fi
 
 step "Google Chrome"
 [ -d "/Applications/Google Chrome.app" ] || echo "Install Chrome manually from https://www.google.com/chrome/ (no package manager on this machine)."
@@ -56,6 +60,7 @@ npm_pin playwright "$PLAYWRIGHT_VERSION"
 npm_pin @playwright/mcp "$PLAYWRIGHT_MCP_VERSION"
 npm_pin @playwright/cli "$PLAYWRIGHT_CLI_VERSION"
 npm_pin ruflo "$RUFLO_VERSION"
+
 step "OpenSpec (spec-driven development: specs, changes, archive)"
 npm_pin @fission-ai/openspec "$OPENSPEC_VERSION"
 openspec config set telemetry.enabled false >/dev/null

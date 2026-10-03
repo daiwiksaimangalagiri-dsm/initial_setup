@@ -2,7 +2,7 @@
 
 Every tool on our machines, explained in plain words. Update this page each time you add or remove something.
 
-- **Last verified:** 2026-10-02 on macOS 26.6.2 (arm64): 48 checks passed
+- **Last verified:** 2026-10-02 on macOS 26.6.2 (arm64): 76 checks passed, 0 failed, 0 warnings
 - **One command:** run `initial-setup` inside any repo. It installs what's missing, sets up the repo, and checks everything.
 
 ---
@@ -70,6 +70,7 @@ initial-setup
 - **What:** GitHub from the terminal: create repos, open PRs, check CI.
 - **Why:** Lets Claude create and manage repos for you. git alone can only push.
 - **Install:** the official binary from github.com/cli/cli releases (we check its checksum). Then sign in once: `gh auth login --git-protocol https --web`
+- **Git credentials:** once you're signed in, `initial-setup` runs `gh auth setup-git`, so `git push` uses the gh sign-in. Check: `verify.sh` shows `git → gh credentials`.
 
 ### git 2.50.1 + Xcode Command Line Tools
 - **What:** Version control, plus the compilers some packages need.
