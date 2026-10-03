@@ -21,6 +21,8 @@
 
 The examples are in Java. Translate them to the project's language. The limits (file sizes, counts, lengths) are strict defaults: keep them unless the project's `CLAUDE.md` sets others, and say so when you change one.
 
+**Specs:** every repo uses OpenSpec (`openspec/`) for specs, plans and decisions. If a repo has no `openspec/` folder, run `initial-setup` in it before writing any spec. Superpowers' brainstorming and writing-plans write into the OpenSpec change folder, never `docs/superpowers/specs/` or `docs/superpowers/plans/`.
+
 **Model and effort:** pick the cheapest setting that does the job well.
 
 | Task | Model | Effort |

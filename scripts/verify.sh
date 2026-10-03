@@ -48,6 +48,7 @@ check "playwright" playwright --version
 check "playwright-mcp" playwright-mcp --version
 check "playwright-cli" playwright-cli --version
 check "ruflo" ruflo --version
+check "openspec" openspec --version
 check "headroom" headroom --version
 check "gh" gh --version
 if gh auth status >/dev/null 2>&1; then ok "gh auth" "signed in"; else warn "gh auth" "run: gh auth login --git-protocol https --web"; fi
@@ -124,6 +125,9 @@ if [ -n "$PROJECT" ]; then
     [ -d "$P/.git" ] && ok "git repo" "yes" || bad "git repo" "no .git"
     [ -f "$P/CLAUDE.md" ] && ok "CLAUDE.md" "present" || bad "CLAUDE.md" "missing"
     grep -q '"playwright-chrome"' "$P/.mcp.json" 2>/dev/null && ok ".mcp.json" "playwright-chrome" || bad ".mcp.json" "playwright-chrome missing"
+    [ -f "$P/openspec/config.yaml" ] && ok "openspec" "initialized" || bad "openspec" "not initialized"
+    [ -f "$P/.claude/commands/opsx/propose.md" ] && ok "openspec commands" "/opsx:* installed" || bad "openspec commands" "missing — run initial-setup"
+    grep -q "## Specs (OpenSpec)" "$P/CLAUDE.md" 2>/dev/null && ok "CLAUDE.md: OpenSpec rule" "present" || bad "CLAUDE.md: OpenSpec rule" "missing — run initial-setup"
     [ -d "$P/.claude-flow" ] && ok "ruflo" "initialized" || bad "ruflo" "not initialized"
     if grep -q '"model"' "$P/.claude/settings.json" 2>/dev/null; then warn "project model pin" ".claude/settings.json overrides your model"; else ok "project model pin" "none (uses your default)"; fi
     grep -qxF ".playwright-mcp/" "$P/.gitignore" 2>/dev/null && ok ".gitignore" "Playwright output ignored" || bad ".gitignore" "Playwright output not ignored"

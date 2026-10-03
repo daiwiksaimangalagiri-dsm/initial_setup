@@ -37,6 +37,24 @@ while IFS= read -r line; do
   grep -qxF -- "$line" "$DEST/.gitignore" || { echo "$line" >> "$DEST/.gitignore"; echo "  .gitignore: $line"; }
 done < "$REPO/templates/gitignore"
 
+# OpenSpec: specs folder plus the /opsx commands for Claude Code. Runs every time: it keeps
+# config.yaml and existing specs, and restores missing or outdated commands.
+(cd "$DEST" && openspec init --tools claude --no-animation >/dev/null)
+echo "  openspec init"
+# Existing CLAUDE.md files miss template sections added later: copy each one in if absent
+python3 - "$DEST/CLAUDE.md" "$REPO/templates/CLAUDE.md" <<'PY'
+import re, sys
+dst, tpl = sys.argv[1], open(sys.argv[2]).read()
+s = open(dst).read()
+# Specs: stops superpowers writing a second spec folder.
+for title in ("Specs (OpenSpec)",):
+    if f"## {title}" in s: continue
+    sec = re.search(rf"^## {re.escape(title)}\n.*?(?=^## )", tpl, re.S | re.M).group(0)
+    s = s.replace("## The loop", sec + "## The loop", 1) if "## The loop" in s else s.rstrip() + "\n\n" + sec
+    print(f"  CLAUDE.md: added {title} section")
+open(dst, "w").write(s)
+PY
+
 # ruflo: minimal project init (skills, hooks config, .claude-flow runtime). No sign-up, no global edits.
 if [ ! -d "$DEST/.claude-flow" ]; then
   (cd "$DEST" && RUFLO_NO_SKILLS_SH=1 ruflo init --minimal --no-signup --no-global --no-mods --no-codex-detect --no-skills-sh >/dev/null 2>&1)

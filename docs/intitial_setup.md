@@ -41,6 +41,7 @@ initial-setup
 | Claude Code plugins | Add-ons for Claude Code | Skills, memory, token savings, design tools |
 | headroom | Local proxy | Shrinks what Claude sends, so sessions use fewer tokens |
 | ruflo | Agent orchestration | Runs swarms of agents for big tasks |
+| OpenSpec | Spec-driven development | Write specs before code, change them in phases, keep the history |
 | GitHub MCP | GitHub tools for Claude | Issues, PRs, repos and CI from inside Claude |
 | Custom skills | Our own instructions for Claude | Same writing, workflow and secure-coding rules for everyone |
 
@@ -142,6 +143,14 @@ initial-setup
 - **Per repo:** `ruflo init --minimal` adds 8 ruflo skills and a `.claude-flow/` folder. Our setup script removes the old model that ruflo pins, so your default model still applies.
 - **Install:** `npm install -g ruflo@3.51.1 && claude mcp add ruflo -s user -- ruflo mcp start`
 - **Note:** ruflo has one maintainer and releases often. We pin the version on purpose.
+
+### OpenSpec 1.14.0 (`@fission-ai/openspec`)
+- **What:** Keeps specs in the repo. Each feature or phase is a "change" with a proposal, design, tasks and spec edits. Finished changes merge into the main spec and move to a dated archive.
+- **Why:** We agree on what to build before code, review it in a PR, and keep a history of every spec change and decision. Superpowers still runs the build (TDD, debugging, review), but specs live only in OpenSpec.
+- **Per repo:** `initial-setup` runs `openspec init --tools claude` in every repo, every time. It adds `openspec/` and the `/opsx:*` commands, keeps your existing specs and config, and adds the OpenSpec rule to an existing `CLAUDE.md`. `verify.sh` fails if any of these is missing.
+- **Install:** `npm install -g @fission-ai/openspec@1.14.0`, then `openspec config set telemetry.enabled false`
+- **Check:** `openspec --version`
+- **How to use it:** **[openspec.md](openspec.md)**
 
 ---
 

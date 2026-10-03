@@ -4,6 +4,10 @@ One line per change, newest first. Use **Added**, **Updated** or **Removed**, an
 
 ## 2026-10-02
 
+- **Added** OpenSpec 1.14.0 for spec-driven development: one change per phase, spec deltas as amendments, a dated archive as history. `project-setup.sh` runs `openspec init` in each repo. We picked it over Spec Kit, BMAD and Kiro because it tracks amendments and has the smallest reviews. Telemetry is off.
+- **Added** a "Specs (OpenSpec)" rule to the project `CLAUDE.md` template: OpenSpec owns specs, plans and decisions; superpowers runs the build. This stops two spec folders from forming.
+- **Updated** `project-setup.sh` to run `openspec init` on every run, so every repo gets OpenSpec and missing commands come back. It also adds the OpenSpec rule to a repo's existing `CLAUDE.md`. `verify.sh` checks all three. The global team block tells Claude to run `initial-setup` in any repo that has no `openspec/`.
+- **Added** `docs/openspec.md`, a plain guide to using OpenSpec.
 - **Added** the GitHub MCP server (user scope, all sessions). It signs in through `scripts/github-mcp-headers.sh`, so no token is stored in the config.
 - **Added** the GitHub CLI `gh` 2.102.0, and published this repo at github.com/daiwiksaimangalagiri-dsm/initial_setup.
 - **Added** 14 secure-coding skills (`secure-*`) from righettod/code-assistant-skills-security-utils (GPL-3.0). The global `CLAUDE.md` and the project template tell Claude when to use each one.

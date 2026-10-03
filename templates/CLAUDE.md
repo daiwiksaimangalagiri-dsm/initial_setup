@@ -18,6 +18,15 @@ Never guess at intent. If a task leaves anything open (which screen, which endpo
 - Do not widen scope past what was asked. Note the adjacent thing you spotted; don't fix it unprompted.
 - If you had to assume something you couldn't resolve, list it at the top of your summary.
 
+## Specs (OpenSpec)
+
+Specs live in `openspec/`. How to use it: `docs/openspec.md` in the initial_setup repo.
+
+- Every feature or phase starts as a change: `/opsx:propose`. Build it with `/opsx:apply`, finish with `/opsx:archive`.
+- OpenSpec owns all specs, designs, plans and decisions. Superpowers' brainstorming writes into the change's `proposal.md` and `design.md`; writing-plans writes into its `tasks.md`. Never create `docs/superpowers/specs/` or `docs/superpowers/plans/`.
+- Superpowers still runs the build: TDD, debugging, verification and code review.
+- Record each decision in `design.md` under `### Decision:` with the reason. A decision that spans changes goes in `docs/decisions/NNNN-title.md`; to change it, write a new one that supersedes it.
+
 ## The loop
 
 Every change runs through the project's check, test and build commands. A task is not done until they pass.

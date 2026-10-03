@@ -13,6 +13,7 @@ RUFLO_VERSION=3.51.1
 HEADROOM_VERSION=0.39.1
 BUN_VERSION=1.4.2
 GH_VERSION=2.102.0
+OPENSPEC_VERSION=1.14.0
 CLAUDE_PLUGINS="superpowers@claude-plugins-official playwright@claude-plugins-official context7@claude-plugins-official frontend-design@claude-plugins-official figma@claude-plugins-official claude-code-setup@claude-plugins-official"
 
 REPO=$(cd "$(dirname "$0")/.." && pwd)
@@ -55,6 +56,9 @@ npm_pin playwright "$PLAYWRIGHT_VERSION"
 npm_pin @playwright/mcp "$PLAYWRIGHT_MCP_VERSION"
 npm_pin @playwright/cli "$PLAYWRIGHT_CLI_VERSION"
 npm_pin ruflo "$RUFLO_VERSION"
+step "OpenSpec (spec-driven development: specs, changes, archive)"
+npm_pin @fission-ai/openspec "$OPENSPEC_VERSION"
+openspec config set telemetry.enabled false >/dev/null
 
 step "Playwright Chromium"
 playwright install chromium
