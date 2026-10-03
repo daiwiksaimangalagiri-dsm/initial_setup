@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""initial_setup commit-msg hook: enforces Conventional Commits 1.0.0.
+
+  <type>(<optional scope>)<optional !>: <description>
+
+Stdlib only. Installed per repo by scripts/project-setup.sh.
+Self-check: python3 hooks/commit-msg --test
+Emergency bypass (discouraged): git commit --no-verify
+"""
+import re, sys
+
+TYPES = "feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert"
+HEADER = re.compile(rf"^(?:{TYPES})(?:\([^()\s][^()]*\))?!?: \S.*$")
+AUTO = ("Merge ", 'Revert "', "fixup! ", "squash! ", "amend! ")
+MAX = 72
+
+HELP = """commit-msg: {why}
+
+Commits must follow Conventional Commits 1.0.0:
+
+  <type>(<optional scope>): <description>
+
+  types: feat fix docs style refactor perf test build ci chore revert
+  header: imperative, lowercase start, no trailing period, max 72 chars
+  breaking change: add ! after the type or scope, or a BREAKING CHANGE: footer
+  body: blank line after the header, then what changed and why
+
+Example:
+
+  feat(auth): add password reset by email
+
+  - send a one-time link that expires after 30 minutes
+  - rate limit requests to 5 per hour per address
+
+  Refs: #123
+
+Emergency bypass (discouraged): git commit --no-verify
+"""
+
+
+def check(msg):
+    """Return None if the message is valid, else a short reason."""
+    lines = [l for l in msg.splitlines() if not l.startswith("#")]
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    if not lines:
+        return "empty commit message"
+    header = lines[0]
+    if header.startswith(AUTO):
+        return None
+    if len(header) > MAX:
+        return f"header is {len(header)} chars, max is {MAX}"
+    if not HEADER.match(header):
+        return f"header does not match the format: {header!r}"
+    if header.endswith("."):
+        return "header must not end with a period"
+    if len(lines) > 1 and lines[1].strip():
+        return "leave a blank line between the header and the body"
+    return None
+
+
+def _test():
+    good = [
+        "feat: add login", "fix(api): handle empty body", "feat!: drop v1 api",
+        "refactor(core)!: rename client\n\nBREAKING CHANGE: Client is now Session",
+        "docs: update readme\n\nwhy and what\n\n# comment", "Merge branch 'x' into main",
+        'Revert "feat: add login"', "fixup! feat: add login", "squash! fix: x",
+        "amend! fix: x", "# comment\nchore: bump deps\n", "feat: " + "x" * 65,
+    ]
+    bad = [
+        "", "# only a comment", "added login", "Feat: add login", "feat:add login",
+        "feat: ", "feat(): add login", "feat(a b: x", "update: add login",
+        "fix: done.", "feat: " + "x" * 67, "feat: add login\nbody without blank line",
+        "wip",
+    ]
+    for m in good: assert check(m) is None, f"should pass: {m!r} ({check(m)})"
+    for m in bad: assert check(m) is not None, f"should fail: {m!r}"
+    print(f"commit-msg self-check passed ({len(good)} good, {len(bad)} bad)")
+
+
+if __name__ == "__main__":
+    if sys.argv[1:] == ["--test"]:
+        _test()
+    elif len(sys.argv) != 2:
+        sys.exit("usage: commit-msg <message-file> | --test")
+    else:
+        why = check(open(sys.argv[1], encoding="utf-8", errors="replace").read())
+        if why:
+            sys.stderr.write(HELP.format(why=why))
+            sys.exit(1)

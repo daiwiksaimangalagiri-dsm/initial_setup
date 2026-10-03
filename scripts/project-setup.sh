@@ -46,14 +46,25 @@ python3 - "$DEST/CLAUDE.md" "$REPO/templates/CLAUDE.md" <<'PY'
 import re, sys
 dst, tpl = sys.argv[1], open(sys.argv[2]).read()
 s = open(dst).read()
-# Specs: stops superpowers writing a second spec folder.
-for title in ("Specs (OpenSpec)",):
+# Specs: stops superpowers writing a second spec folder. Commits: Conventional Commits rule.
+for title in ("Specs (OpenSpec)", "Commits (Conventional Commits)"):
     if f"## {title}" in s: continue
     sec = re.search(rf"^## {re.escape(title)}\n.*?(?=^## )", tpl, re.S | re.M).group(0)
     s = s.replace("## The loop", sec + "## The loop", 1) if "## The loop" in s else s.rstrip() + "\n\n" + sec
     print(f"  CLAUDE.md: added {title} section")
 open(dst, "w").write(s)
 PY
+
+# commit-msg hook (Conventional Commits). Goes in the repo's own hooks dir (honours core.hooksPath).
+# Never overwrites someone else's hook; updates ours if outdated.
+HOOKS=$(git -C "$DEST" rev-parse --git-path hooks); case $HOOKS in /*) ;; *) HOOKS=$DEST/$HOOKS;; esac
+mkdir -p "$HOOKS"
+if [ ! -e "$HOOKS/commit-msg" ] || { grep -q "initial_setup commit-msg hook" "$HOOKS/commit-msg" && ! cmp -s "$REPO/hooks/commit-msg" "$HOOKS/commit-msg"; }; then
+  cp "$REPO/hooks/commit-msg" "$HOOKS/commit-msg" && chmod +x "$HOOKS/commit-msg"
+  echo "  commit-msg hook: installed (Conventional Commits)"
+elif ! grep -q "initial_setup commit-msg hook" "$HOOKS/commit-msg"; then
+  echo "  commit-msg hook: kept your existing $HOOKS/commit-msg (Conventional Commits not enforced; see docs/intitial_setup.md)"
+fi
 
 # ruflo: minimal project init (skills, hooks config, .claude-flow runtime). No sign-up, no global edits.
 if [ ! -d "$DEST/.claude-flow" ]; then

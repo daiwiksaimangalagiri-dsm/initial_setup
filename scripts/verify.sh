@@ -85,6 +85,7 @@ PORT=$(python3 -c "import json;print(json.load(open('$HOME/.claude-mem/settings.
 if curl -sf -m 3 "http://127.0.0.1:$PORT/health" >/dev/null; then ok "claude-mem worker" "healthy on :$PORT"; else warn "claude-mem worker" "not running (starts with the next session)"; fi
 python3 "$REPO/statusline/statusline.py" --test >/dev/null 2>&1 && ok "status line" "self-check passed" || bad "status line" "self-check failed: python3 statusline/statusline.py --test"
 python3 "$REPO/statusline/subagent-statusline.py" --test >/dev/null 2>&1 && ok "subagent status line" "self-check passed" || bad "subagent status line" "self-check failed"
+python3 "$REPO/hooks/commit-msg" --test >/dev/null 2>&1 && ok "commit-msg hook" "self-check passed" || bad "commit-msg hook" "self-check failed: python3 hooks/commit-msg --test"
 SL=$(python3 -c "import json;print(json.load(open('$HOME/.claude/settings.json')).get('statusLine',{}).get('command',''))" 2>/dev/null)
 case "$SL" in *initial_setup/statusline*) ok "statusLine setting" "ours";; "") bad "statusLine setting" "not set — run install.sh";; *) warn "statusLine setting" "your own: $SL";; esac
 
@@ -132,6 +133,12 @@ if [ -n "$PROJECT" ]; then
     [ -f "$P/openspec/config.yaml" ] && ok "openspec" "initialized" || bad "openspec" "not initialized"
     [ -f "$P/.claude/commands/opsx/propose.md" ] && ok "openspec commands" "/opsx:* installed" || bad "openspec commands" "missing — run initial-setup"
     grep -q "## Specs (OpenSpec)" "$P/CLAUDE.md" 2>/dev/null && ok "CLAUDE.md: OpenSpec rule" "present" || bad "CLAUDE.md: OpenSpec rule" "missing — run initial-setup"
+    grep -q "## Commits (Conventional Commits)" "$P/CLAUDE.md" 2>/dev/null && ok "CLAUDE.md: commits rule" "present" || bad "CLAUDE.md: commits rule" "missing — run initial-setup"
+    HK=$(git -C "$P" rev-parse --git-path hooks 2>/dev/null); case $HK in /*) ;; *) HK=$P/$HK;; esac
+    if [ ! -f "$HK/commit-msg" ]; then bad "commit-msg hook" "missing — run initial-setup"
+    elif grep -q "initial_setup commit-msg hook" "$HK/commit-msg"; then
+      cmp -s "$REPO/hooks/commit-msg" "$HK/commit-msg" && ok "commit-msg hook" "Conventional Commits enforced" || bad "commit-msg hook" "outdated — run initial-setup"
+    else warn "commit-msg hook" "your own hook is there, Conventional Commits not enforced"; fi
     [ -d "$P/.claude-flow" ] && ok "ruflo" "initialized" || bad "ruflo" "not initialized"
     if grep -q '"model"' "$P/.claude/settings.json" 2>/dev/null; then warn "project model pin" ".claude/settings.json overrides your model"; else ok "project model pin" "none (uses your default)"; fi
     grep -qxF ".playwright-mcp/" "$P/.gitignore" 2>/dev/null && ok ".gitignore" "Playwright output ignored" || bad ".gitignore" "Playwright output not ignored"

@@ -23,6 +23,8 @@ The examples are in Java. Translate them to the project's language. The limits (
 
 **Specs:** every repo uses OpenSpec (`openspec/`) for specs, plans and decisions. If a repo has no `openspec/` folder, run `initial-setup` in it before writing any spec. Superpowers' brainstorming and writing-plans write into the OpenSpec change folder, never `docs/superpowers/specs/` or `docs/superpowers/plans/`.
 
+**Commits:** every git commit in every repo uses Conventional Commits 1.0.0: `<type>(<optional scope>): <description>`, with type one of `feat fix docs style refactor perf test build ci chore revert`. Subject is imperative, lowercase, no trailing period, 72 characters or fewer. Add a body (blank line after the subject, what and why) for anything but a trivial change. Mark breaking changes with `!` or a `BREAKING CHANGE:` footer. One logical change per commit. A `commit-msg` hook enforces this; never bypass it with `--no-verify`.
+
 **Model and effort:** pick the cheapest setting that does the job well.
 
 | Task | Model | Effort |

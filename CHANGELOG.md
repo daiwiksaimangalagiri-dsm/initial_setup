@@ -4,6 +4,7 @@ One line per change, newest first. Use **Added**, **Updated** or **Removed**, an
 
 ## 2026-10-02
 
+- **Added** mandatory Conventional Commits 1.0.0. A "Commits" rule in the project `CLAUDE.md` template and the global team block tells Claude the format and asks for a body. A dependency-free `hooks/commit-msg` hook (with `--test`) rejects other messages. `project-setup.sh` installs it in every repo without overwriting a different hook and adds the rule to existing `CLAUDE.md` files; `verify.sh` checks both. Bypass with `--no-verify` is discouraged.
 - **Added** a status line (`statusline/`): model and effort, repo and branch, context bar, tokens, cost, session time, prompt cache hit rate and warm time, money saved by the cache and headroom, model mix, rate limits, and a model row for each subagent. Python stdlib only, no new dependency. Prompt caching was already on (93% hit rate); Claude Code just never showed it.
 - **Added** OpenSpec 1.14.0 for spec-driven development: one change per phase, spec deltas as amendments, a dated archive as history. `project-setup.sh` runs `openspec init` in each repo. We picked it over Spec Kit, BMAD and Kiro because it tracks amendments and has the smallest reviews. Telemetry is off.
 - **Added** a "Specs (OpenSpec)" rule to the project `CLAUDE.md` template: OpenSpec owns specs, plans and decisions; superpowers runs the build. This stops two spec folders from forming.

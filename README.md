@@ -23,9 +23,10 @@ It installs anything missing (tools, plugins, MCP servers, skills, session defau
 | [`CHANGELOG.md`](CHANGELOG.md) | **History:** dated record of every addition, update and removal |
 | `setup.sh` (`initial-setup`) | The one command: install → set up repo → verify |
 | `scripts/install.sh` | Machine install (`--update-skills` to pull skill changes) |
-| `scripts/project-setup.sh [dir]` | Repo setup: `CLAUDE.md`, `.mcp.json`, `.gitignore`, ruflo. Never overwrites files |
+| `scripts/project-setup.sh [dir]` | Repo setup: `CLAUDE.md`, `.mcp.json`, `.gitignore`, ruflo, commit-msg hook. Never overwrites files |
 | `scripts/verify.sh [--smoke] [dir]` | Checks tools, plugins, hooks and session defaults, and optionally a repo |
 | `scripts/sync-skills.sh [name]` | Copy your edited live skills back into the repo |
+| `hooks/commit-msg` | Git hook that enforces Conventional Commits (`--test` runs its self-check) |
 | `skills/` | Custom skills that get installed to `~/.claude/skills/` |
 | `templates/` | Repo files, plus the team block for `~/.claude/CLAUDE.md` |
 

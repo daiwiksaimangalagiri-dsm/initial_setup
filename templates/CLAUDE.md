@@ -27,6 +27,27 @@ Specs live in `openspec/`. How to use it: `docs/openspec.md` in the initial_setu
 - Superpowers still runs the build: TDD, debugging, verification and code review.
 - Record each decision in `design.md` under `### Decision:` with the reason. A decision that spans changes goes in `docs/decisions/NNNN-title.md`; to change it, write a new one that supersedes it.
 
+## Commits (Conventional Commits)
+
+Every commit follows [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). A `commit-msg` hook rejects anything else.
+
+- Format: `<type>(<optional scope>): <description>`. Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
+- Breaking change: `!` after the type or scope, and/or a `BREAKING CHANGE: ...` footer.
+- Subject: imperative, lowercase start, no trailing period, 72 characters or fewer.
+- Body is required for anything but a trivial change. Leave a blank line after the subject, then say what changed and why (bullets are fine). Wrap at about 72 columns.
+- Footers: `Refs: #123`, `BREAKING CHANGE: ...`, and any `Co-Authored-By:` trailer.
+- One logical change per commit.
+- Never use `--no-verify` to get past the hook. Fix the message.
+
+```
+feat(auth): add password reset by email
+
+- send a one-time link that expires after 30 minutes
+- rate limit requests to 5 per hour per address
+
+Refs: #123
+```
+
 ## The loop
 
 Every change runs through the project's check, test and build commands. A task is not done until they pass.

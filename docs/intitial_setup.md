@@ -20,7 +20,7 @@ initial-setup
 | Step | Script | What it does |
 |------|--------|--------------|
 | 1 | `scripts/install.sh` | Installs every tool, plugin, MCP server and skill on your Mac. Skips anything already there. |
-| 2 | `scripts/project-setup.sh` | Sets up the current repo: `CLAUDE.md`, `.mcp.json`, `.gitignore`, ruflo. Adds only what's missing and never overwrites your files. |
+| 2 | `scripts/project-setup.sh` | Sets up the current repo: `CLAUDE.md`, `.mcp.json`, `.gitignore`, ruflo, the commit-msg hook. Adds only what's missing and never overwrites your files. |
 | 3 | `scripts/verify.sh --smoke` | Checks everything, runs each session-start hook, and opens real browsers. Any ✘ means something needs fixing. |
 
 ---
@@ -43,6 +43,7 @@ initial-setup
 | ruflo | Agent orchestration | Runs swarms of agents for big tasks |
 | Status line | Live bar under Claude's prompt | Shows model, tokens, cost, prompt cache, money saved, repo and branch |
 | OpenSpec | Spec-driven development | Write specs before code, change them in phases, keep the history |
+| Commit rules | Conventional Commits, enforced by a git hook | Every commit has a clear type and reason, so history and changelogs stay readable |
 | GitHub MCP | GitHub tools for Claude | Issues, PRs, repos and CI from inside Claude |
 | Custom skills | Our own instructions for Claude | Same writing, workflow and secure-coding rules for everyone |
 
@@ -179,6 +180,21 @@ initial-setup
 - **Check:** `python3 statusline/statusline.py --test`
 - **Turn off:** `/statusline delete` in Claude Code.
 
+## Commit rules (Conventional Commits, `hooks/commit-msg`)
+
+- **What:** Every commit message follows [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/): `<type>(<optional scope>): <description>`. Types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. Breaking changes use `!` or a `BREAKING CHANGE:` footer.
+- **Why:** A readable history, clear reviews, and changelogs we can generate later. A body that says what and why helps the next person.
+- **How it's enforced:** two layers.
+
+  | Layer | Where | What it does |
+  |-------|-------|--------------|
+  | Rule for Claude | `## Commits (Conventional Commits)` in each repo's `CLAUDE.md`, and `**Commits:**` in the team block | Claude writes the format, with a body, in every repo |
+  | Git hook | `.git/hooks/commit-msg` (or your `core.hooksPath`) | Rejects a bad first line, a header over 72 characters, or a body with no blank line before it. It allows `Merge`, `Revert "..."`, `fixup!`, `squash!` and `amend!` messages |
+
+- **Install:** `initial-setup` copies the hook into each repo. It never overwrites a different `commit-msg` hook (it prints a note and `verify.sh` warns), and it updates an outdated copy of ours. It sets no global `core.hooksPath`, so other repos keep their own hooks.
+- **Check:** `python3 hooks/commit-msg --test`. `verify.sh` runs it, and checks each repo has the hook (✔ ours, ! someone else's, ✘ missing).
+- **Emergency bypass:** `git commit --no-verify`. Don't. Fix the message instead.
+
 ## Session defaults (apply to every session)
 
 | Default | Where it lives | What it does |
@@ -186,6 +202,7 @@ initial-setup
 | Effort `xhigh` | `~/.claude/settings.json` → `effortLevel` | Claude thinks hard by default |
 | Model and effort guide | `~/.claude/CLAUDE.md` (team block) | haiku for search, sonnet for routine work, opus for the main session, `/effort max` for hard problems, Ultracode for big builds |
 | stop-slop | `~/.claude/CLAUDE.md` (team block) | Plain, direct writing in docs and messages |
+| Commits | `~/.claude/CLAUDE.md` (team block) | Conventional Commits format with a body, in every repo |
 | Secure coding | `~/.claude/CLAUDE.md` (team block) | Loads the matching `secure-*` skill for archives, uploads, JWT, XML and similar code |
 | task-observer | `~/.claude/CLAUDE.md` | Logs lessons from each session to improve our skills |
 | Session-start hooks | the plugins above | superpowers, claude-mem, headroom, ponytail |
@@ -204,10 +221,12 @@ Our skills live in `skills/` and get copied to `~/.claude/skills/`. Full list: *
 
 | File | Goes to | Purpose |
 |------|---------|---------|
-| `CLAUDE.md` | repo root | Team rules for Claude: ask first, test, strict types, naming |
+| `CLAUDE.md` | repo root | Team rules for Claude: ask first, commits, test, strict types, naming |
 | `mcp.json` | `.mcp.json` | Playwright MCP → Chrome |
 | `gitignore` | `.gitignore` | Ignores secrets, `node_modules`, Playwright output |
 | `global-CLAUDE.md` | `~/.claude/CLAUDE.md` | Team defaults for every session |
+
+The `commit-msg` hook lives in `hooks/` and is copied into each repo's git hooks folder.
 
 ---
 
